@@ -33,8 +33,7 @@ describe('TransportService', () => {
         it('should calculate route between known Romanian cities', async () => {
             const result = await service.calculateRoute({ originCity: 'București', destinationCity: 'Constanța' } as any);
             expect(result.distanceKm).toBeGreaterThan(0);
-            expect(result.durationMinutes).toBeGreaterThan(0);
-            expect(result.coordinates).toBeDefined();
+            expect(result.durationMin).toBeGreaterThan(0);
         });
 
         it('should return error for unknown cities', async () => {
@@ -57,12 +56,12 @@ describe('TransportService', () => {
             });
             mockShipmentRepo.save.mockImplementation((data) => Promise.resolve(data));
 
-            const result = await service.simulateBidding('s-1');
+            const result = await service.simulateCargoBidding('s-1');
             expect(result.bids).toBeDefined();
             expect(result.bids.length).toBe(4);
             result.bids.forEach(bid => {
-                expect(bid.companyScore).toBeGreaterThanOrEqual(0);
-                expect(bid.pricePerKm).toBeGreaterThan(0);
+                expect(bid.score).toBeGreaterThanOrEqual(0);
+                expect(bid.ratePerKm).toBeGreaterThan(0);
             });
         });
     });

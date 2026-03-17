@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Shipment } from './entities/shipment.entity';
 import { TransportService } from './transport.service';
 import { TransportController } from './transport.controller';
+import { MapsController } from './maps.controller';
 
 @Module({
     imports: [
@@ -24,7 +25,7 @@ import { TransportController } from './transport.controller';
             }),
         }),
     ],
-    controllers: [TransportController],
+    controllers: [TransportController, MapsController],
     providers: [TransportService],
     exports: [TransportService],
 })

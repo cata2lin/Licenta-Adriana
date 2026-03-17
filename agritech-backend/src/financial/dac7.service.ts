@@ -44,7 +44,7 @@ export class DAC7Service {
         // Fetch all completed orders for the year
         const orders = await this.orderRepo.find({
             where: { status: OrderStatus.COMPLETED },
-            relations: ['seller', 'seller.company'],
+            relations: ['seller'],
         });
 
         // Filter by year
@@ -57,14 +57,14 @@ export class DAC7Service {
         const sellerMap = new Map<string, DAC7ReportEntry>();
 
         for (const order of yearOrders) {
-            const companyName = order.seller?.company?.name || 'N/A';
-            const cui = order.seller?.company?.cui || 'N/A';
+            const companyName = order.seller?.companyName || 'N/A';
+            const cui = order.seller?.cui || 'N/A';
 
             if (!sellerMap.has(cui)) {
                 sellerMap.set(cui, {
                     companyName,
                     cui,
-                    address: order.seller?.company?.legalAddress || 'N/A',
+                    address: order.seller?.legalAddress || 'N/A',
                     totalConsideration: 0,
                     platformFees: 0,
                     transactionCount: 0,

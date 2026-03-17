@@ -24,6 +24,7 @@ import { OpenDisputeDto, SendMessageDto, ProposeResolutionDto, AcceptResolutionD
 import { JwtAuthGuard } from '../iam/guards/jwt-auth.guard';
 import { RolesGuard } from '../iam/guards/roles.guard';
 import { Roles } from '../iam/decorators/roles.decorator';
+import { UserRole } from '../iam/entities/user.entity';
 
 @Controller('disputes')
 export class DisputesController {
@@ -46,7 +47,7 @@ export class DisputesController {
 
     @Get('stats')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles(UserRole.ADMIN)
     async getStats() {
         return this.disputesService.getStats();
     }

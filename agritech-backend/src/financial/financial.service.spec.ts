@@ -41,7 +41,7 @@ describe('FinancialService', () => {
             mockOrderRepo.create.mockImplementation((data) => ({ id: 'o-1', ...data }));
             mockOrderRepo.save.mockImplementation((data) => Promise.resolve(data));
 
-            const result = await service.createOrder(dto as any, 'buyer-1');
+            const result = await service.createOrder(dto as any);
             expect(result.sellerAmount).toBe(95000); // 95% of 100,000
             expect(result.transportAmount).toBe(3000); // 3%
             expect(result.platformFee).toBe(2000); // 2%
@@ -51,7 +51,7 @@ describe('FinancialService', () => {
     describe('Order Status Machine', () => {
         it('should allow DRAFT → ESCROW_FUNDED transition', async () => {
             mockOrderRepo.findOne.mockResolvedValue({
-                id: 'o-1', status: OrderStatus.DRAFT, buyer: { id: 'b-1' }, seller: { id: 's-1' },
+                id: 'o-1', status: OrderStatus.PENDING, buyer: { id: 'b-1' }, seller: { id: 's-1' },
             });
             mockOrderRepo.save.mockImplementation((data) => Promise.resolve(data));
             const result = await service.updateOrderStatus('o-1', { status: OrderStatus.ESCROW_FUNDED } as any);
@@ -62,7 +62,7 @@ describe('FinancialService', () => {
             mockOrderRepo.findOne.mockResolvedValue({
                 id: 'o-1', status: OrderStatus.COMPLETED,
             });
-            await expect(service.updateOrderStatus('o-1', { status: OrderStatus.DRAFT } as any)).rejects.toThrow();
+            await expect(service.updateOrderStatus('o-1', { status: OrderStatus.PENDING } as any)).rejects.toThrow();
         });
     });
 
@@ -75,7 +75,7 @@ describe('FinancialService', () => {
             mockOrderRepo.save.mockImplementation((data) => Promise.resolve(data));
 
             const dto = { listingId: 'l-1', quantity: 100, pricePerUnit: 1000 };
-            const result = await service.createOrder(dto as any, 'buyer-1');
+            const result = await service.createOrder(dto as any);
             expect(result).toBeDefined();
         });
     });
@@ -83,7 +83,7 @@ describe('FinancialService', () => {
     describe('Escrow Operations', () => {
         it('should create FUND escrow transaction', async () => {
             mockOrderRepo.findOne.mockResolvedValue({
-                id: 'o-1', status: OrderStatus.DRAFT, totalValue: 100000,
+                id: 'o-1', status: OrderStatus.PENDING, totalValue: 100000,
                 buyer: { id: 'b-1' }, seller: { id: 's-1' },
             });
             mockEscrowRepo.create.mockReturnValue({ id: 'e-1', type: 'FUND' });

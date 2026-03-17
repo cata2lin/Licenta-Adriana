@@ -22,6 +22,7 @@ export default function Navbar() {
                 {user && <Link to="/orders" className={cl('/orders')}>Comenzi</Link>}
                 {user && <Link to="/contracts" className={cl('/contracts')}>Contracte</Link>}
                 {user && <Link to="/logistics" className={cl('/logistics')}>Logistică</Link>}
+                {user && <Link to="/analytics" className={cl('/analytics')}>Analiză</Link>}
                 {user && <Link to="/profile" className={cl('/profile')}>Profil</Link>}
                 {user?.role === 'ADMIN' && <Link to="/admin" className={cl('/admin')}>Admin</Link>}
             </div>

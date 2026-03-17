@@ -63,7 +63,7 @@ describe('DisputesService', () => {
         });
 
         it('should reject dispute on non-disputable order', async () => {
-            mockOrderRepo.findOne.mockResolvedValue({ id: 'o-1', status: OrderStatus.DRAFT });
+            mockOrderRepo.findOne.mockResolvedValue({ id: 'o-1', status: OrderStatus.PENDING });
             await expect(service.openDispute({ orderId: 'o-1', reason: 'QUALITY_DEVIATION', description: 'Test' } as any, 'buyer-1'))
                 .rejects.toThrow();
         });

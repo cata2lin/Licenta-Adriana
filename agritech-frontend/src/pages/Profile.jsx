@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/ui';
 import { profileService } from '../services';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 export default function Profile() {
     const { user, addToast } = useApp();
@@ -105,7 +106,7 @@ export default function Profile() {
                     {activeTab === 'info' && (
                         <div className="card">
                             <div className="form-group"><label className="form-label">Nume Companie</label><input className="form-input" value={companyName} onChange={e => setCompanyName(e.target.value)} /></div>
-                            <div className="form-group"><label className="form-label">Adresă Sediu</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} /></div>
+                            <AddressAutocomplete label="Adresă Sediu" value={address} onChange={setAddress} onSelect={(details) => setAddress(details.address || details.formattedAddress || address)} placeholder="Caută adresa sediului..." />
                             <div className="grid-2">
                                 <div className="form-group"><label className="form-label">Telefon</label><input className="form-input" value={phone} onChange={e => setPhone(e.target.value)} /></div>
                                 <div className="form-group"><label className="form-label">Email Contact</label><input className="form-input" value={email} onChange={e => setEmail(e.target.value)} /></div>

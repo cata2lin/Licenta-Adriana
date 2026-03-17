@@ -16,6 +16,7 @@ import { TradingService } from './trading.service';
 import { TradingController } from './trading.controller';
 import { ForwardContractService } from './services/forward-contract.service';
 import { ForwardContractController } from './controllers/forward-contract.controller';
+import { AnalyticsController } from './analytics.controller';
 
 @Module({
     imports: [
@@ -29,7 +30,7 @@ import { ForwardContractController } from './controllers/forward-contract.contro
             }),
         }),
     ],
-    controllers: [TradingController, ForwardContractController],
+    controllers: [TradingController, ForwardContractController, AnalyticsController],
     providers: [TradingService, ForwardContractService],
     exports: [TradingService, ForwardContractService],
 })

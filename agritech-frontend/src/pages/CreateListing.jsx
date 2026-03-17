@@ -5,6 +5,7 @@ import { PageHeader } from '../components/ui';
 import { COMMODITY_MAP } from '../data/listings';
 import { formatRON } from '../utils/formatters';
 import { tradingService } from '../services';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 
 export default function CreateListing() {
@@ -95,7 +96,7 @@ export default function CreateListing() {
                         <div className="form-group"><label className="form-label">Disponibil de la</label><input className="form-input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ minHeight: 44 }} /></div>
                         <div className="form-group"><label className="form-label">Disponibil până la</label><input className="form-input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ minHeight: 44 }} /></div>
                     </div>
-                    <div className="form-group"><label className="form-label">Locație Depozit / Siloz</label><input className="form-input" value={location} onChange={e => setLocation(e.target.value)} placeholder="Constanța, Str. Portului Nr. 12" style={{ minHeight: 44 }} /></div>
+                    <AddressAutocomplete label="Locație Depozit / Siloz" value={location} onChange={setLocation} onSelect={(details) => setLocation(details.address || details.formattedAddress || location)} placeholder="Caută: Constanța, 900001..." />
 
                     {qty > 0 && price > 0 && (
                         <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', padding: '1rem', margin: '1.5rem 0' }}>

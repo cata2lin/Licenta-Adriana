@@ -12,4 +12,5 @@ export { default as disputesService } from './disputesService';
 export { default as notificationService } from './notificationService';
 export { default as profileService } from './profileService';
 export { default as forwardContractService } from './forwardContractService';
+export { default as analyticsService } from './analyticsService';
 export { api, setToken, clearToken } from './api';

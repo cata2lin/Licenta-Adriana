@@ -77,9 +77,9 @@ export class FinancialService {
             status: OrderStatus.PENDING,
             deliveryDate: dto.deliveryDate ? new Date(dto.deliveryDate) : null,
             notes: dto.notes,
-        });
+        } as any);
 
-        const savedOrder = await this.orderRepo.save(order);
+        const savedOrder = await this.orderRepo.save(order as any);
         return savedOrder;
     }
 

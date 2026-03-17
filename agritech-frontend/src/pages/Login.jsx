@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 export default function Login() {
     const [tab, setTab] = useState('login');
@@ -95,7 +96,7 @@ export default function Login() {
                                 <input className="form-input" value={cui} onChange={e => { setCui(e.target.value); setCuiStatus(null); }} onBlur={simulateAnafCheck} placeholder="RO12345678" style={{ minHeight: 44 }} />
                             </div>
                             <div className="form-group"><label className="form-label">Nume Firmă</label><input className="form-input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="SC AGRO ION SRL" required style={{ minHeight: 44 }} /></div>
-                            <div className="form-group"><label className="form-label">Adresă Sediu</label><input className="form-input" value={address} onChange={e => setAddress(e.target.value)} placeholder="Str. Recoltei Nr. 5, Constanța" style={{ minHeight: 44 }} /></div>
+                            <AddressAutocomplete label="Adresă Sediu" value={address} onChange={setAddress} onSelect={(details) => setAddress(details.address || details.formattedAddress || address)} placeholder="Caută adresă: Constanța, 900001..." />
                             <button type="submit" className="btn btn-gold" disabled={isLoading} style={{ width: '100%', justifyContent: 'center', minHeight: 48 }}>
                                 {isLoading ? '⏳ Se procesează...' : 'Creează Cont'}
                             </button>

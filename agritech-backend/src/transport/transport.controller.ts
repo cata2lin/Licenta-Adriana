@@ -25,6 +25,7 @@ import {
 import { JwtAuthGuard } from '../iam/guards/jwt-auth.guard';
 import { RolesGuard } from '../iam/guards/roles.guard';
 import { Roles } from '../iam/decorators/roles.decorator';
+import { UserRole } from '../iam/entities/user.entity';
 
 @Controller('transport')
 export class TransportController {
@@ -80,7 +81,7 @@ export class TransportController {
 
     @Get('stats')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles(UserRole.ADMIN)
     async getStats() {
         return this.transportService.getStats();
     }

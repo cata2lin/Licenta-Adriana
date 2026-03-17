@@ -39,10 +39,10 @@ export class ForwardContractService {
             depositAmount,
             deliveryDate: new Date(dto.deliveryDate),
             status: ForwardContractStatus.ACTIVE,
-            reverseChargeVat: true, // Default: both parties are VAT payers
-        });
+            reverseChargeVat: true,
+        } as any);
 
-        return this.contractRepo.save(contract);
+        return this.contractRepo.save(contract as any);
     }
 
     /** Get all forward contracts for a company (seller or buyer) */

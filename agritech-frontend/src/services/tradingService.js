@@ -23,6 +23,10 @@ const tradingService = {
     createListing: (data) => api.post('/trading/listings', data),
     updateListing: (id, data) => api.patch(`/trading/listings/${id}`, data),
     deleteListing: (id) => api.delete(`/trading/listings/${id}`),
+
+    // Aliases for AppContext compatibility
+    getListings: (params) => tradingService.searchListings(params || {}),
+    deactivateListing: (id) => api.delete(`/trading/listings/${id}`),
 };
 
 export default tradingService;

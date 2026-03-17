@@ -16,6 +16,11 @@ const transportService = {
     // ─── Routing ───
     calculateRoute: (data) => api.post('/transport/route/calculate', data),
 
+    // ─── Google Maps Proxy (Address Autocomplete + Distance) ───
+    autocomplete: (input) => api.get(`/maps/autocomplete?input=${encodeURIComponent(input)}`),
+    placeDetails: (placeId) => api.get(`/maps/place-details/${placeId}`),
+    calculateDistance: (origin, destination) => api.post('/maps/distance', { origin, destination }),
+
     // ─── Bidding ───
     simulateBidding: (shipmentId) => api.post(`/transport/bidding/${shipmentId}`),
 

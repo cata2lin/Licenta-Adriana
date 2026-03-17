@@ -13,7 +13,8 @@ import { forwardContractService } from '../services';
 
 export default function Contracts() {
     const { addToast, addOrder, user } = useApp();
-    const [contracts, setContracts] = useState(MOCK_FORWARD_CONTRACTS);
+    const [contracts, setContracts] = useState([]);
+    const [contractsLoading, setContractsLoading] = useState(true);
     const [showNewContract, setShowNewContract] = useState(false);
     const [selectedContract, setSelectedContract] = useState(null);
     const [invoiceModal, setInvoiceModal] = useState(null);
@@ -29,8 +30,12 @@ export default function Contracts() {
     // Load contracts from API on mount
     useEffect(() => {
         forwardContractService.getAll()
-            .then(data => { if (Array.isArray(data) && data.length > 0) setContracts(data); })
-            .catch(() => { }); // keep mock data as fallback
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) setContracts(data);
+                else setContracts(MOCK_FORWARD_CONTRACTS);
+            })
+            .catch(() => setContracts(MOCK_FORWARD_CONTRACTS))
+            .finally(() => setContractsLoading(false));
     }, []);
 
     const activeContracts = contracts.filter(c => c.status === 'Activ' || c.status === 'ACTIVE');

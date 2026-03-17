@@ -30,6 +30,7 @@ import {
 import { JwtAuthGuard } from '../iam/guards/jwt-auth.guard';
 import { RolesGuard } from '../iam/guards/roles.guard';
 import { Roles } from '../iam/decorators/roles.decorator';
+import { UserRole } from '../iam/entities/user.entity';
 
 @Controller('trading')
 export class TradingController {
@@ -39,7 +40,7 @@ export class TradingController {
 
     @Post('commodities')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles(UserRole.ADMIN)
     async createCommodity(@Body() dto: CreateCommodityDto) {
         return this.tradingService.createCommodity(dto);
     }
@@ -51,14 +52,14 @@ export class TradingController {
 
     @Patch('commodities/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles(UserRole.ADMIN)
     async updateCommodity(@Param('id') id: string, @Body() dto: UpdateCommodityDto) {
         return this.tradingService.updateCommodity(id, dto);
     }
 
     @Delete('commodities/:id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN')
+    @Roles(UserRole.ADMIN)
     @HttpCode(HttpStatus.NO_CONTENT)
     async deactivateCommodity(@Param('id') id: string) {
         return this.tradingService.deactivateCommodity(id);

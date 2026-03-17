@@ -190,9 +190,9 @@ export class TransportService {
             pickupDate: dto.pickupDate ? new Date(dto.pickupDate) : null,
             notes: dto.notes,
             status: ShipmentStatus.PLANNED,
-        });
+        } as any);
 
-        return this.shipmentRepo.save(shipment);
+        return this.shipmentRepo.save(shipment as any);
     }
 
     async findShipmentById(id: string): Promise<Shipment> {
@@ -266,7 +266,7 @@ export class TransportService {
         shipment.transporter = { id: dto.transporterId } as any;
         shipment.ratePerKm = dto.agreedRate;
         shipment.totalCost = Math.round(Number(shipment.distanceKm) * dto.agreedRate);
-        shipment.transporterScore = dto.transporterScore || null;
+        shipment.transporterScore = dto.transporterScore || 0;
         shipment.status = ShipmentStatus.ASSIGNED;
 
         return this.shipmentRepo.save(shipment);

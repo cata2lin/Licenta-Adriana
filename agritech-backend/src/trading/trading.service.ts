@@ -37,8 +37,8 @@ export class TradingService {
             reverseChargeVat: dto.reverseChargeVat ?? true,
             vatRate: dto.vatRate ?? 9.00,
             paramSchema: dto.paramSchema || null,
-        });
-        return this.commodityRepo.save(commodity);
+        } as any);
+        return this.commodityRepo.save(commodity as any);
     }
 
     async findAllCommodities(): Promise<Commodity[]> {
@@ -70,7 +70,7 @@ export class TradingService {
 
         const listing = this.listingRepo.create({
             commodity,
-            seller: { id: sellerId } as any, // Set by company ID from JWT token
+            seller: { id: sellerId } as any,
             title: dto.title,
             quantity: dto.quantity,
             pricePerUnit: dto.pricePerUnit,
@@ -80,9 +80,9 @@ export class TradingService {
             availableFrom: dto.availableFrom ? new Date(dto.availableFrom) : null,
             availableTo: dto.availableTo ? new Date(dto.availableTo) : null,
             status: ListingStatus.ACTIVE,
-        });
+        } as any);
 
-        return this.listingRepo.save(listing);
+        return this.listingRepo.save(listing as any);
     }
 
     async findListingById(id: string): Promise<Listing> {
