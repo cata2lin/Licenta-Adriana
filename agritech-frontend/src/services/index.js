@@ -13,4 +13,5 @@ export { default as notificationService } from './notificationService';
 export { default as profileService } from './profileService';
 export { default as forwardContractService } from './forwardContractService';
 export { default as analyticsService } from './analyticsService';
+export { default as reviewService } from './reviewService';
 export { api, setToken, clearToken } from './api';

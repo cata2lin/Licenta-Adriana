@@ -1,13 +1,16 @@
 /**
- * Profile Controller — REST API for User/Company Profile
+ * Profile Controller — REST API for User/Company Profile + Reviews
  * 
  * Endpoints:
- * - GET    /profile         → Get own profile
- * - PATCH  /profile/company → Update company details
- * - PATCH  /profile/prefs   → Update user preferences
+ * - GET    /profile              → Get own profile
+ * - PATCH  /profile/company      → Update company details
+ * - PATCH  /profile/prefs        → Update user preferences
+ * - POST   /profile/reviews      → Create a review
+ * - GET    /profile/reviews/:companyId → Get reviews for a company
+ * - DELETE /profile/reviews/:id  → Delete own review
  */
-import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
-import { ProfileService, UpdateCompanyDto, UpdatePreferencesDto } from './profile.service';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { ProfileService, UpdateCompanyDto, UpdatePreferencesDto, CreateReviewDto } from './profile.service';
 import { JwtAuthGuard } from '../iam/guards/jwt-auth.guard';
 
 @Controller('profile')
@@ -28,5 +31,22 @@ export class ProfileController {
     @Patch('prefs')
     async updatePreferences(@Request() req: any, @Body() dto: UpdatePreferencesDto) {
         return this.profileService.updatePreferences(req.user.sub, dto);
+    }
+
+    // ─── Review Endpoints ───
+
+    @Post('reviews')
+    async createReview(@Request() req: any, @Body() dto: CreateReviewDto) {
+        return this.profileService.createReview(req.user.sub, dto);
+    }
+
+    @Get('reviews/:companyId')
+    async getCompanyReviews(@Param('companyId') companyId: string) {
+        return this.profileService.getCompanyReviews(companyId);
+    }
+
+    @Delete('reviews/:id')
+    async deleteReview(@Request() req: any, @Param('id') id: string) {
+        return this.profileService.deleteReview(req.user.sub, id);
     }
 }

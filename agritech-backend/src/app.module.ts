@@ -12,6 +12,7 @@ import { TransportModule } from './transport/transport.module';
 import { DisputesModule } from './disputes/disputes.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ProfileModule } from './profile/profile.module';
+import { Review } from './profile/entities/review.entity';
 
 // ─── Entities (for TypeORM global registration) ───
 import { User } from './iam/entities/user.entity';
@@ -50,6 +51,8 @@ import { Notification } from './notifications/entities/notification.entity';
           Dispute, DisputeMessage,
           // Notifications
           Notification,
+          // Reviews
+          Review,
         ],
         synchronize: true, // DEV ONLY: auto-create tables
       }),

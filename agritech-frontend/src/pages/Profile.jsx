@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/ui';
-import { profileService } from '../services';
+import { profileService, reviewService } from '../services';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 
 export default function Profile() {
@@ -27,6 +27,34 @@ export default function Profile() {
     const [notifOrders, setNotifOrders] = useState(true);
     const [language, setLanguage] = useState('ro');
 
+    // --- Reviews State ---
+    const [reviews, setReviews] = useState([]);
+    const [reviewStats, setReviewStats] = useState({ count: 0, average: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+    const [newRating, setNewRating] = useState(5);
+    const [newMessage, setNewMessage] = useState('');
+    const [newNotes, setNewNotes] = useState('');
+    const [newOrderRef, setNewOrderRef] = useState('');
+    const [hoverStar, setHoverStar] = useState(0);
+    const [companyId, setCompanyId] = useState(null);
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+    const MOCK_REVIEWS = [
+        { id: '1', rating: 5, message: 'Grâu de calitate excelentă, livrare la timp. Recomand cu încredere!', reviewerName: 'SC OIL PRESS SRL', createdAt: '2024-03-08T10:30:00Z', orderRef: 'AGR-2024-002' },
+        { id: '2', rating: 4, message: 'Porumb bun, umiditate conform specificațiilor. Comunicare profesionistă.', reviewerName: 'SC MORAR SRL', createdAt: '2024-02-20T14:00:00Z', orderRef: 'AGR-2024-005' },
+        { id: '3', rating: 5, message: 'Partener de încredere. Am colaborat de 3 ori, întotdeauna impecabil.', reviewerName: 'SC DELTA FARMS SRL', createdAt: '2024-01-15T09:00:00Z', orderRef: 'FWD-2024-001' },
+        { id: '4', rating: 4, message: 'Calitate bună, ușoară întârziere la livrare dar compensată prin preț corect.', reviewerName: 'SC BIO CEREALE SRL', createdAt: '2024-01-02T11:00:00Z' },
+        { id: '5', rating: 3, message: 'Proteina ușor sub pragul contractat, dar s-a rezolvat amiabil prin reducere.', reviewerName: 'SC AGRO VEST SRL', createdAt: '2023-12-10T16:00:00Z', orderRef: 'AGR-2023-012' },
+    ];
+
+    /** Calculate stats from a reviews array */
+    const calcStats = useCallback((revs) => {
+        if (!revs.length) return { count: 0, average: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+        const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        let total = 0;
+        revs.forEach(r => { total += r.rating; dist[r.rating] = (dist[r.rating] || 0) + 1; });
+        return { count: revs.length, average: Math.round((total / revs.length) * 100) / 100, distribution: dist };
+    }, []);
+
     // Load profile from API on mount
     useEffect(() => {
         profileService.getProfile()
@@ -35,9 +63,56 @@ export default function Profile() {
                 if (data?.company?.legalAddress) setAddress(data.company.legalAddress);
                 if (data?.phoneNumber) setPhone(data.phoneNumber);
                 if (data?.email) setEmail(data.email);
+                if (data?.company?.id) {
+                    setCompanyId(data.company.id);
+                    // Load reviews for this company
+                    reviewService.getCompanyReviews(data.company.id)
+                        .then(revData => {
+                            if (revData?.reviews?.length > 0) {
+                                setReviews(revData.reviews);
+                                setReviewStats(revData.stats);
+                            } else {
+                                setReviews(MOCK_REVIEWS);
+                                setReviewStats(calcStats(MOCK_REVIEWS));
+                            }
+                        })
+                        .catch(() => { setReviews(MOCK_REVIEWS); setReviewStats(calcStats(MOCK_REVIEWS)); });
+                } else {
+                    setReviews(MOCK_REVIEWS);
+                    setReviewStats(calcStats(MOCK_REVIEWS));
+                }
             })
-            .catch(() => { }); // Fallback to mock defaults
+            .catch(() => { setReviews(MOCK_REVIEWS); setReviewStats(calcStats(MOCK_REVIEWS)); });
     }, []);
+
+    /** Submit a new review */
+    const submitReview = async () => {
+        if (!newMessage.trim()) { addToast('Scrie un mesaj pentru recenzie.', 'error'); return; }
+        setReviewSubmitting(true);
+        try {
+            const created = await reviewService.createReview({
+                companyId: companyId,
+                rating: newRating,
+                message: newMessage.trim(),
+                notes: newNotes.trim() || undefined,
+                orderRef: newOrderRef.trim() || undefined,
+            });
+            const newReview = { ...created, reviewerName: user?.fullName || user?.email?.split('@')[0] || 'Eu' };
+            const updated = [newReview, ...reviews];
+            setReviews(updated);
+            setReviewStats(calcStats(updated));
+            setNewMessage(''); setNewNotes(''); setNewOrderRef(''); setNewRating(5);
+            addToast('Recenzia a fost publicată cu succes!', 'success');
+        } catch {
+            // Fallback: add locally
+            const mockReview = { id: Date.now().toString(), rating: newRating, message: newMessage.trim(), notes: newNotes.trim(), orderRef: newOrderRef.trim(), reviewerName: user?.fullName || user?.email?.split('@')[0] || 'Eu', createdAt: new Date().toISOString() };
+            const updated = [mockReview, ...reviews];
+            setReviews(updated);
+            setReviewStats(calcStats(updated));
+            setNewMessage(''); setNewNotes(''); setNewOrderRef(''); setNewRating(5);
+            addToast('Recenzia a fost publicată (mod local).', 'success');
+        } finally { setReviewSubmitting(false); }
+    };
 
     const handleDocUpload = (index) => {
         const newDocs = [...docs];
@@ -62,10 +137,24 @@ export default function Profile() {
 
     const tabs = [
         { id: 'info', label: 'Informații Generale' },
+        { id: 'reviews', label: `Recenzii (${reviewStats.count})` },
         { id: 'banking', label: 'Date Bancare' },
         { id: 'docs', label: 'Documente' },
         { id: 'settings', label: 'Setări' },
     ];
+
+    /** Star rating component */
+    const StarPicker = ({ value, onChange, hover, onHover, size = 24 }) => (
+        <div style={{ display: 'flex', gap: 2, cursor: onChange ? 'pointer' : 'default' }}>
+            {[1, 2, 3, 4, 5].map(star => (
+                <span key={star} style={{ fontSize: size, color: star <= (hover || value) ? 'var(--gold-primary)' : 'var(--text-muted)', transition: 'color 0.15s', userSelect: 'none' }}
+                    onClick={() => onChange?.(star)}
+                    onMouseEnter={() => onHover?.(star)}
+                    onMouseLeave={() => onHover?.(0)}
+                >★</span>
+            ))}
+        </div>
+    );
 
     return (
         <div className="page">
@@ -81,7 +170,7 @@ export default function Profile() {
                         <span className="badge badge-green">KYC VERIFICAT ✓</span>
                         <span className="badge badge-green">ANAF Plătitor TVA — Activ</span>
                     </div>
-                    <div style={{ color: 'var(--gold-primary)', fontSize: '1.2rem', fontWeight: 600 }}>⭐ 4.8/5 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>(128 recenzii)</span></div>
+                    <div style={{ color: 'var(--gold-primary)', fontSize: '1.2rem', fontWeight: 600 }}>⭐ {reviewStats.average || '—'}/5 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({reviewStats.count} recenzii)</span></div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>Membru din: Ianuarie 2024</div>
 
                     <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
@@ -189,6 +278,81 @@ export default function Profile() {
                                         )}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TAB: Recenzii */}
+                    {activeTab === 'reviews' && (
+                        <div className="card">
+                            <h4 style={{ color: 'var(--gold-primary)', marginBottom: '1.5rem' }}>⭐ Recenzii Companie</h4>
+
+                            {/* Rating Overview */}
+                            <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ textAlign: 'center', minWidth: 120 }}>
+                                    <div style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--gold-primary)', lineHeight: 1 }}>{reviewStats.average || '—'}</div>
+                                    <StarPicker value={Math.round(reviewStats.average)} size={20} />
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{reviewStats.count} recenzii</div>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 200 }}>
+                                    {[5, 4, 3, 2, 1].map(star => {
+                                        const count = reviewStats.distribution?.[star] || 0;
+                                        const pct = reviewStats.count > 0 ? (count / reviewStats.count) * 100 : 0;
+                                        return (
+                                            <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 3 }}>
+                                                <span style={{ width: 20, textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{star}★</span>
+                                                <div style={{ flex: 1, height: 10, background: 'var(--bg-secondary)', borderRadius: 5, overflow: 'hidden' }}>
+                                                    <div style={{ width: `${pct}%`, height: '100%', background: 'var(--gold-primary)', borderRadius: 5, transition: 'width 0.4s' }} />
+                                                </div>
+                                                <span style={{ width: 24, fontSize: '0.75rem', color: 'var(--text-muted)' }}>{count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Write Review Form */}
+                            <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', padding: '1.25rem', marginBottom: '2rem', border: '1px solid var(--glass-border)' }}>
+                                <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>✍️ Scrie o Recenzie</h4>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Rating:</span>
+                                    <StarPicker value={newRating} onChange={setNewRating} hover={hoverStar} onHover={setHoverStar} size={28} />
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--gold-primary)', fontWeight: 600 }}>{newRating}/5</span>
+                                </div>
+                                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                    <textarea className="form-textarea" placeholder="Descrie experiența ta cu acest partener comercial..." value={newMessage} onChange={e => setNewMessage(e.target.value)} style={{ minHeight: 80 }} />
+                                </div>
+                                <div className="grid-2" style={{ marginBottom: '0.75rem' }}>
+                                    <div className="form-group"><label className="form-label">Referință Comandă (opțional)</label><input className="form-input" placeholder="AGR-2024-001" value={newOrderRef} onChange={e => setNewOrderRef(e.target.value)} style={{ minHeight: 40 }} /></div>
+                                    <div className="form-group"><label className="form-label">Note Private (opțional)</label><input className="form-input" placeholder="Note vizibile doar de tine" value={newNotes} onChange={e => setNewNotes(e.target.value)} style={{ minHeight: 40 }} /></div>
+                                </div>
+                                <button className="btn btn-gold" style={{ minHeight: 44 }} onClick={submitReview} disabled={reviewSubmitting}>
+                                    {reviewSubmitting ? '⏳ Se publică...' : '📝 Publică Recenzia'}
+                                </button>
+                            </div>
+
+                            {/* Reviews List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {reviews.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Nicio recenzie încă. Fii primul care lasă o recenzie!</div>
+                                ) : reviews.map(r => (
+                                    <div key={r.id} style={{ padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', background: 'var(--bg-card)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--green-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--gold-primary)' }}>{(r.reviewerName || 'A')[0]}</div>
+                                                <div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.reviewerName}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <StarPicker value={r.rating} size={14} />
+                                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(r.createdAt).toLocaleDateString('ro-RO')}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {r.orderRef && <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>📋 {r.orderRef}</span>}
+                                        </div>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{r.message}</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
