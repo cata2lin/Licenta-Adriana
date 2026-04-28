@@ -74,7 +74,7 @@ echo "════════════════════════�
 echo "  ✅ Deployment Complete!"
 echo "══════════════════════════════════════════════════════════"
 echo ""
-echo "  🌐 Frontend:  http://$(hostname -I | awk '{print $1}')"
+echo "  🌐 Frontend:  http://$(hostname -I | awk '{print $1}'):8080"
 echo "  🔧 Backend:   http://$(hostname -I | awk '{print $1}'):3000/api/v1"
 echo "  🗄️  Database:  PostgreSQL on port 5432"
 echo ""
